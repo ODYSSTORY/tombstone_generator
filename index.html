@@ -66,6 +66,37 @@
     .btn:hover {
       background-color: #005fa3;
     }
+    .tombstone {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1em;
+      margin: 1em 0;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 200px;
+      display: inline-block;
+      vertical-align: top;
+    }
+    .tombstone img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-bottom: 0.5em;
+    }
+    .tombstone .title {
+      font-size: 1.2em;
+      color: #0077cc;
+      margin-bottom: 0.5em;
+    }
+    .tombstone .subtitle {
+      font-size: 1em;
+      color: #555;
+      margin-bottom: 0.5em;
+    }
+    .tombstone .description {
+      font-size: 0.9em;
+      color: #777;
+    }
   </style>
 </head>
 <body>
@@ -86,7 +117,6 @@
   </div>
 
   <script>
-    // Votre code JavaScript ici
     let allData = [];
 
     document.getElementById('upload').addEventListener('change', handleFile);
@@ -132,28 +162,41 @@
         return (!secteur || row['Secteur'] === secteur) && (!typologie || row['Typologie'] === typologie);
       });
 
-      const table = document.createElement('table');
-      const headers = ['Cible', 'Opération', 'Activité de la cible', "Chiffre d'affaires de la cible", 'Typologie', 'Rôle Linkers'];
-      const thead = document.createElement('thead');
-      thead.innerHTML = '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
-      const tbody = document.createElement('tbody');
-
-      filtered.forEach(row => {
-        const tr = document.createElement('tr');
-        headers.forEach(h => {
-          const td = document.createElement('td');
-          td.innerHTML = row[h] || '';
-          tr.appendChild(td);
-        });
-        tbody.appendChild(tr);
-      });
-
-      table.appendChild(thead);
-      table.appendChild(tbody);
-
       const preview = document.getElementById('preview');
       preview.innerHTML = '<h3>Opérations filtrées</h3>';
-      preview.appendChild(table);
+
+      filtered.forEach(row => {
+        const tombstone = document.createElement('div');
+        tombstone.className = 'tombstone';
+
+        if (row['Logo cible']) {
+          const img = document.createElement('img');
+          img.src = row['Logo cible'];
+          tombstone.appendChild(img);
+        }
+
+        const title = document.createElement('div');
+        title.className = 'title';
+        title.innerText = row['Cible'];
+        tombstone.appendChild(title);
+
+        const subtitle = document.createElement('div');
+        subtitle.className = 'subtitle';
+        subtitle.innerText = row['Opération'];
+        tombstone.appendChild(subtitle);
+
+        const description = document.createElement('div');
+        description.className = 'description';
+        description.innerHTML = `
+          <strong>Activité :</strong> ${row['Activité de la cible']}<br>
+          <strong>CA :</strong> ${row["Chiffre d'affaires de la cible"] || 'n.c.'}<br>
+          <strong>Typologie :</strong> ${row['Typologie']}<br>
+          <strong>Rôle Linkers :</strong> ${row['Rôle Linkers']}
+        `;
+        tombstone.appendChild(description);
+
+        preview.appendChild(tombstone);
+      });
     }
 
     function generatePPT() {
@@ -172,8 +215,8 @@
 
       const tombstonesPerPage = 10;
       const tombstonesPerRow = 5;
-      const tombstoneHeight = 1.5;
       const tombstoneWidth = 2.5;
+      const tombstoneHeight = 3.5;
       const margin = 0.2;
 
       for (let i = 0; i < filtered.length; i += tombstonesPerPage) {
@@ -187,17 +230,19 @@
           const x = col * (tombstoneWidth + margin) + margin;
           const y = row * (tombstoneHeight + margin) + margin;
 
-          slide.addText(deal['Opération'] || '', { x, y, w: tombstoneWidth, h: 0.3, fontSize: 14, bold: true });
-          slide.addText(`Cible : ${deal['Cible']}`, { x, y: y + 0.3, w: tombstoneWidth, h: 0.3, fontSize: 12 });
-          slide.addText(`Activité : ${deal['Activité de la cible']}`, { x, y: y + 0.6, w: tombstoneWidth, h: 0.3, fontSize: 10 });
-          slide.addText(`CA : ${deal["Chiffre d'affaires de la cible"] || ''}`, { x, y: y + 0.9, w: tombstoneWidth, h: 0.3, fontSize: 10 });
-          slide.addText(`Typologie : ${deal['Typologie']}`, { x, y: y + 1.2, w: tombstoneWidth, h: 0.3, fontSize: 10 });
-          slide.addText(`Rôle Linkers : ${deal['Rôle Linkers']}`, { x, y: y + 1.4, w: tombstoneWidth, h: 0.1, fontSize: 8, color: '888888' });
-
-          // Ajout du logo si valide
+          // Ajout du logo
           if (deal['Logo cible'] && deal['Logo cible'].startsWith('data:image')) {
-            slide.addImage({ data: deal['Logo cible'], x: x + tombstoneWidth - 0.5, y, w: 0.5, h: 0.5 });
+            slide.addImage({ data: deal['Logo cible'], x, y: y + 0.2, w: tombstoneWidth, h: 1.5 });
           }
+
+          // Ajout du titre
+          slide.addText(deal['Cible'] || '', { x, y: y + 1.8, w: tombstoneWidth, h: 0.3, fontSize: 14, bold: true });
+          slide.addText(deal['Opération'] || '', { x, y: y + 2.1, w: tombstoneWidth, h: 0.3, fontSize: 12 });
+
+          // Ajout des détails
+          slide.addText(`CA : ${deal["Chiffre d'affaires de la cible"] || 'n.c.'}`, { x, y: y + 2.5, w: tombstoneWidth, h: 0.3, fontSize: 10 });
+          slide.addText(`Typologie : ${deal['Typologie']}`, { x, y: y + 2.8, w: tombstoneWidth, h: 0.3, fontSize: 10 });
+          slide.addText(`Rôle Linkers : ${deal['Rôle Linkers']}`, { x, y: y + 3.1, w: tombstoneWidth, h: 0.3, fontSize: 10 });
         }
       }
 
