@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Générateur de Tombstones M&A</title>
+
+  <!-- Librairie XLSX (pour lire les fichiers Excel) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <!-- Importation de PptxGenJS depuis un fichier externe -->
+  <script src="pptxgen.js"></script>
+
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      padding: 2em;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+    h1 {
+      font-size: 2em;
+      color: #0077cc;
+      margin-bottom: 1em;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 2em;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    select, input[type="file"] {
+      margin: 0.5em 0;
+      padding: 0.7em;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 1em;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 0.8em;
+      text-align: left;
+    }
+    th {
+      background-color: #0077cc;
+      color: white;
+    }
+    .btn {
+      padding: 0.7em 1.5em;
+      background-color: #0077cc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 1em;
+      transition: background-color 0.3s;
+    }
+    .btn:hover {
+      background-color: #005fa3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Générateur de Tombstones M&A</h1>
+    <input type="file" id="upload" accept=".xlsx,.xls" />
+
+    <div id="filters" style="display:none;">
+      <label for="secteur">Filtrer par secteur :</label>
+      <select id="secteur"></select>
+      <label for="typologie">Filtrer par typologie :</label>
+      <select id="typologie"></select>
+    </div>
+
+    <div id="preview"></div>
+
+    <button class="btn" id="generatePPT" style="display:none;">Générer le PowerPoint</button>
+  </div>
+
+  <script>
+    // Votre code JavaScript ici
+    let allData = [];
+
+    document.getElementById('upload').addEventListener('change', handleFile);
+    document.getElementById('generatePPT').addEventListener('click', generatePPT);
+
+    function handleFile(e) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        allData = XLSX.utils.sheet_to_json(sheet);
+        console.log('Data loaded:', allData);
+        populateFilters();
+        renderTable(allData);
+      };
+      reader.readAsArrayBuffer(e.target.files[0]);
+    }
+
+    function populateFilters() {
+      const secteurs = [...new Set(allData.map(d => d['Secteur']))];
+      const typologies = [...new Set(allData.map(d => d['Typologie']))];
+
+      const secteurSelect = document.getElementById('secteur');
+      const typologieSelect = document.getElementById('typologie');
+
+      secteurSelect.innerHTML = '<option value="">-- Tous --</option>' + secteurs.map(s => `<option value="${s}">${s}</option>`).join('');
+      typologieSelect.innerHTML = '<option value="">-- Tous --</option>' + typologies.map(t => `<option value="${t}">${t}</option>`).join('');
+
+      document.getElementById('filters').style.display = 'block';
+      document.getElementById('generatePPT').style.display = 'inline-block';
+
+      secteurSelect.addEventListener('change', () => renderTable(allData));
+      typologieSelect.addEventListener('change', () => renderTable(allData));
+    }
+
+    function renderTable(data) {
+      const secteur = document.getElementById('secteur').value;
+      const typologie = document.getElementById('typologie').value;
+
+      const filtered = data.filter(row => {
+        return (!secteur || row['Secteur'] === secteur) && (!typologie || row['Typologie'] === typologie);
+      });
+
+      const table = document.createElement('table');
+      const headers = ['Cible', 'Opération', 'Activité de la cible', "Chiffre d'affaires de la cible", 'Typologie', 'Rôle Linkers'];
+      const thead = document.createElement('thead');
+      thead.innerHTML = '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+      const tbody = document.createElement('tbody');
+
+      filtered.forEach(row => {
+        const tr = document.createElement('tr');
+        headers.forEach(h => {
+          const td = document.createElement('td');
+          td.innerHTML = row[h] || '';
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(thead);
+      table.appendChild(tbody);
+
+      const preview = document.getElementById('preview');
+      preview.innerHTML = '<h3>Opérations filtrées</h3>';
+      preview.appendChild(table);
+    }
+
+    function generatePPT() {
+      const pptx = new PptxGenJS();
+      const secteur = document.getElementById('secteur').value;
+      const typologie = document.getElementById('typologie').value;
+
+      const filtered = allData.filter(row => {
+        return (!secteur || row['Secteur'] === secteur) && (!typologie || row['Typologie'] === typologie);
+      });
+
+      if (filtered.length === 0) {
+        alert('Aucune donnée à exporter.');
+        return;
+      }
+
+      const tombstonesPerPage = 10;
+      const tombstonesPerRow = 5;
+      const tombstoneHeight = 1.5;
+      const tombstoneWidth = 2.5;
+      const margin = 0.2;
+
+      for (let i = 0; i < filtered.length; i += tombstonesPerPage) {
+        const slide = pptx.addSlide();
+        const available = Math.min(tombstonesPerPage, filtered.length - i);
+
+        for (let j = 0; j < available; j++) {
+          const deal = filtered[i + j];
+          const row = Math.floor(j / tombstonesPerRow);
+          const col = j % tombstonesPerRow;
+          const x = col * (tombstoneWidth + margin) + margin;
+          const y = row * (tombstoneHeight + margin) + margin;
+
+          slide.addText(deal['Opération'] || '', { x, y, w: tombstoneWidth, h: 0.3, fontSize: 14, bold: true });
+          slide.addText(`Cible : ${deal['Cible']}`, { x, y: y + 0.3, w: tombstoneWidth, h: 0.3, fontSize: 12 });
+          slide.addText(`Activité : ${deal['Activité de la cible']}`, { x, y: y + 0.6, w: tombstoneWidth, h: 0.3, fontSize: 10 });
+          slide.addText(`CA : ${deal["Chiffre d'affaires de la cible"] || ''}`, { x, y: y + 0.9, w: tombstoneWidth, h: 0.3, fontSize: 10 });
+          slide.addText(`Typologie : ${deal['Typologie']}`, { x, y: y + 1.2, w: tombstoneWidth, h: 0.3, fontSize: 10 });
+          slide.addText(`Rôle Linkers : ${deal['Rôle Linkers']}`, { x, y: y + 1.4, w: tombstoneWidth, h: 0.1, fontSize: 8, color: '888888' });
+
+          // Ajout du logo si valide
+          if (deal['Logo cible'] && deal['Logo cible'].startsWith('data:image')) {
+            slide.addImage({ data: deal['Logo cible'], x: x + tombstoneWidth - 0.5, y, w: 0.5, h: 0.5 });
+          }
+        }
+      }
+
+      pptx.writeFile({ fileName: 'Tombstones_M&A.pptx' });
+    }
+  </script>
+</body>
+</html>
