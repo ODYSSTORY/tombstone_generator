@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Générateur de Tombstones M&A</title>
+  <title>Générateur de Tombstones M&</title>
 
   <!-- Librairie XLSX (pour lire les fichiers Excel) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -109,7 +109,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Générateur de Tombstones M&A</h1>
+    <h1>Générateur de Tombstones M&</h1>
     <input type="file" id="upload" accept=".xlsx,.xls" />
 
     <div id="filters" style="display:none;">
@@ -208,81 +208,90 @@
       });
     }
 
-    function generatePPT() {
-      const pptx = new PptxGenJS();
-      const secteur = document.getElementById('secteur').value;
-      const typologie = document.getElementById('typologie').value;
+function generatePPT() {
+  console.log('Début de la génération du PPT');
+  const pptx = new PptxGenJS();
+  const secteur = document.getElementById('secteur').value;
+  const typologie = document.getElementById('typologie').value;
 
-      const filtered = allData.filter(row => {
-        return (!secteur || row['Secteur'] === secteur) && (!typologie || row['Typologie'] === typologie);
+  const filtered = allData.filter(row => {
+    return (!secteur || row['Secteur'] === secteur) && (!typologie || row['Typologie'] === typologie);
+  });
+
+  if (filtered.length === 0) {
+    alert('Aucune donnée à exporter.');
+    return;
+  }
+
+  console.log('Données filtrées :', filtered);
+
+  const tombstonesPerPage = 10;
+  const tombstonesPerRow = 5;
+  const tombstoneWidth = 2.5;
+  const tombstoneHeight = 3.5;
+  const margin = 0.2;
+
+  for (let i = 0; i < filtered.length; i += tombstonesPerPage) {
+    const slide = pptx.addSlide();
+    const available = Math.min(tombstonesPerPage, filtered.length - i);
+
+    for (let j = 0; j < available; j++) {
+      const deal = filtered[i + j];
+      const row = Math.floor(j / tombstonesPerRow);
+      const col = j % tombstonesPerRow;
+      const x = col * (tombstoneWidth + margin) + margin;
+      const y = row * (tombstoneHeight + margin) + margin;
+
+      // Ajout du contour
+      slide.addRect(x - margin, y - margin, tombstoneWidth + 2 * margin, tombstoneHeight + 2 * margin, {
+        fill: { color: 'FFFFFF' },
+        line: { color: '0077CC', width: 2 }
       });
 
-      if (filtered.length === 0) {
-        alert('Aucune donnée à exporter.');
-        return;
+      // Ajout du logo
+      if (deal['Logo cible'] && deal['Logo cible'].startsWith('data:image')) {
+        slide.addImage({ data: deal['Logo cible'], x: x + 0.5, y: y + 0.2, w: tombstoneWidth - 1, h: 1.5 });
       }
 
-      const tombstonesPerPage = 10;
-      const tombstonesPerRow = 5;
-      const tombstoneWidth = 2.5;
-      const tombstoneHeight = 3.5;
-      const margin = 0.2;
+      // Ajout du chiffre d'affaires
+      slide.addText(`CA = ${deal["Chiffre d'affaires de la cible"] || 'n.c.'}`, {
+        x,
+        y: y + 1.8,
+        w: tombstoneWidth,
+        h: 0.5,
+        fontSize: 10,
+        color: '555555',
+        bold: true
+      });
 
-      for (let i = 0; i < filtered.length; i += tombstonesPerPage) {
-        const slide = pptx.addSlide();
-        const available = Math.min(tombstonesPerPage, filtered.length - i);
+      // Ajout de l'opération avec fond bleu
+      slide.addText(deal['Opération'] || '', {
+        x,
+        y: y + 2.4,
+        w: tombstoneWidth,
+        h: 0.5,
+        fontSize: 12,
+        color: 'FFFFFF',
+        bold: true,
+        fill: { color: '0077CC' }
+      });
 
-        for (let j = 0; j < available; j++) {
-          const deal = filtered[i + j];
-          const row = Math.floor(j / tombstonesPerRow);
-          const col = j % tombstonesPerRow;
-          const x = col * (tombstoneWidth + margin) + margin;
-          const y = row * (tombstoneHeight + margin) + margin;
+      // Ajout du rôle Linkers
+      slide.addText(deal['Rôle Linkers'] || '', { x, y: y + 2.9, w: tombstoneWidth, h: 0.3, fontSize: 10, color: '777777' });
 
-          // Ajout du contour
-          slide.addRect(x - margin, y - margin, tombstoneWidth + 2 * margin, tombstoneHeight + 2 * margin, {
-            fill: { color: 'FFFFFF' },
-            line: { color: '0077CC', width: 2 }
-          });
-
-          // Ajout du logo
-          if (deal['Logo cible'] && deal['Logo cible'].startsWith('data:image')) {
-            slide.addImage({ data: deal['Logo cible'], x: x + 0.5, y: y + 0.2, w: tombstoneWidth - 1, h: 1.5 });
-          }
-
-          // Ajout du chiffre d'affaires
-          slide.addText(`CA = ${deal["Chiffre d'affaires de la cible"] || 'n.c.'}`, {
-            x,
-            y: y + 1.8,
-            w: tombstoneWidth,
-            h: 0.5,
-            fontSize: 10,
-            color: '555555',
-            bold: true
-          });
-
-          // Ajout de l'opération avec fond bleu
-          slide.addText(deal['Opération'] || '', {
-            x,
-            y: y + 2.4,
-            w: tombstoneWidth,
-            h: 0.5,
-            fontSize: 12,
-            color: 'FFFFFF',
-            bold: true,
-            fill: { color: '0077CC' }
-          });
-
-          // Ajout du rôle Linkers
-          slide.addText(deal['Rôle Linkers'] || '', { x, y: y + 2.9, w: tombstoneWidth, h: 0.3, fontSize: 10, color: '777777' });
-
-          // Ajout de l'icône de conseil
-          slide.addImage({ path: 'icons/vendeur.png', x: x + tombstoneWidth - 0.5, y: y + 3.3, w: 0.3, h: 0.3 });
-        }
+      // Ajout de l'icône de conseil
+      try {
+        slide.addImage({ path: 'icons/vendeur.png', x: x + tombstoneWidth - 0.5, y: y + 3.3, w: 0.3, h: 0.3 });
+      } catch (error) {
+        console.error('Erreur lors de l\'ajout de l\'icône :', error);
       }
-
-      pptx.writeFile({ fileName: 'Tombstones_M&A.pptx' });
     }
+  }
+
+  console.log('Génération du fichier PPT');
+  pptx.writeFile({ fileName: 'Tombstones_M&A.pptx' });
+  console.log('Fichier PPT généré');
+}
   </script>
 </body>
 </html>
