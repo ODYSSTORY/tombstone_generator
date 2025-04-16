@@ -51,7 +51,7 @@
       justify-content: center;
     }
     .tombstone {
-      border: 2px solid #0077cc;
+      border: 1px solid #ddd;
       border-radius: 12px;
       padding: 1em;
       background-color: #fff;
@@ -71,16 +71,16 @@
     }
     .tombstone .ca {
       font-size: 0.9em;
-      color: #555;
-      margin-bottom: 0.5em;
-    }
-    .tombstone .operation {
-      font-size: 1em;
       color: #fff;
       background-color: #0077cc;
       padding: 0.5em;
       margin-bottom: 0.5em;
       border-radius: 4px;
+    }
+    .tombstone .operation {
+      font-size: 1em;
+      color: #0077cc;
+      margin-bottom: 0.5em;
     }
     .tombstone .role {
       font-size: 0.8em;
@@ -239,18 +239,12 @@
           const x = col * (tombstoneWidth + margin) + margin;
           const y = row * (tombstoneHeight + margin) + margin;
 
-          // Ajout du contour
-          slide.addRect(x - margin, y - margin, tombstoneWidth + 2 * margin, tombstoneHeight + 2 * margin, {
-            fill: { color: 'FFFFFF' },
-            line: { color: '0077CC', width: 2 }
-          });
-
           // Ajout du logo
           if (deal['Logo cible'] && deal['Logo cible'].startsWith('data:image')) {
-            slide.addImage({ data: deal['Logo cible'], x: x + 0.5, y: y + 0.2, w: tombstoneWidth - 1, h: 1.5 });
+            slide.addImage({ data: deal['Logo cible'], x, y: y + 0.2, w: tombstoneWidth, h: 1.5 });
           }
 
-          // Ajout du chiffre d'affaires
+         // Ajout du chiffre d'affaires
           slide.addText(`CA = ${deal["Chiffre d'affaires de la cible"] || 'n.c.'}`, {
             x,
             y: y + 1.8,
@@ -274,7 +268,7 @@
           });
 
           // Ajout du rôle Linkers
-          slide.addText(deal['Rôle Linkers'] || '', { x, y: y + 2.9, w: tombstoneWidth, h: 0.3, fontSize: 10, color: '777777' });
+          slide.addText(deal['Rôle Linkers'] || '', { x, y: y + 2.9, w: tombstoneWidth, h: 0.3, fontSize: 10 });
 
           // Ajout de l'icône de conseil
           slide.addImage({ path: 'icons/vendeur.png', x: x + tombstoneWidth - 0.5, y: y + 3.3, w: 0.3, h: 0.3 });
