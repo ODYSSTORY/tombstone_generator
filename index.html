@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Générateur de Tombstones Linkers</title>
+  <title>Générateur de Tombstones M&A</title>
 
   <!-- Librairie XLSX (pour lire les fichiers Excel) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -109,7 +109,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Générateur de Tombstones Linkers</h1>
+    <h1>Générateur de Tombstones M&A</h1>
     <input type="file" id="upload" accept=".xlsx,.xls" />
 
     <div id="filters" style="display:none;">
@@ -258,48 +258,87 @@ function generatePPT() {
           const logoWidth = tombstoneWidth - 1;
           const logoHeight = logoWidth * aspectRatio;
           const scaledHeight = logoHeight > logoMaxHeight ? logoMaxHeight : logoHeight;
-          slide.addImage({ data: deal['Logo cible'], x: x + 0.5, y: y + (tombstoneHeight / 2 - scaledHeight / 2), w: logoWidth, h: scaledHeight });
+          slide.addImage({ data: deal['Logo cible'], x: x + 0.5, y: y + 0.2, w: logoWidth, h: scaledHeight });
+
+          // Ajout du chiffre d'affaires
+          slide.addText(`CA = ${deal["Chiffre d'affaires de la cible"] || 'n.c.'}`, {
+            x,
+            y: y + scaledHeight + 0.1,
+            w: tombstoneWidth,
+            h: 0.5,
+            fontSize: 10,
+            color: '555555',
+            bold: true,
+            align: pptx.AlignH.center,
+            valign: pptx.AlignV.middle
+          });
+
+          // Ajout de l'opération avec fond bleu
+          slide.addText(deal['Opération'] || '', {
+            x,
+            y: y + tombstoneHeight / 2,
+            w: tombstoneWidth,
+            h: 0.8,
+            fontSize: 12,
+            color: 'FFFFFF',
+            bold: true,
+            fill: { color: '0077CC' },
+            align: pptx.AlignH.center,
+            valign: pptx.AlignV.middle
+          });
+
+          // Ajout du rôle Linkers
+          slide.addText(deal['Rôle Linkers'] || '', {
+            x,
+            y: y + tombstoneHeight / 2 + 0.8,
+            w: tombstoneWidth,
+            h: 0.5,
+            fontSize: 10,
+            color: '777777',
+            align: pptx.AlignH.center,
+            valign: pptx.AlignV.middle
+          });
         };
+      } else {
+        // Si pas de logo, ajouter les textes directement
+        slide.addText(`CA = ${deal["Chiffre d'affaires de la cible"] || 'n.c.'}`, {
+          x,
+          y: y + 0.2,
+          w: tombstoneWidth,
+          h: 0.5,
+          fontSize: 10,
+          color: '555555',
+          bold: true,
+          align: pptx.AlignH.center,
+          valign: pptx.AlignV.middle
+        });
+
+        // Ajout de l'opération avec fond bleu
+        slide.addText(deal['Opération'] || '', {
+          x,
+          y: y + tombstoneHeight / 2,
+          w: tombstoneWidth,
+          h: 0.8,
+          fontSize: 12,
+          color: 'FFFFFF',
+          bold: true,
+          fill: { color: '0077CC' },
+          align: pptx.AlignH.center,
+          valign: pptx.AlignV.middle
+        });
+
+        // Ajout du rôle Linkers
+        slide.addText(deal['Rôle Linkers'] || '', {
+          x,
+          y: y + tombstoneHeight / 2 + 0.8,
+          w: tombstoneWidth,
+          h: 0.5,
+          fontSize: 10,
+          color: '777777',
+          align: pptx.AlignH.center,
+          valign: pptx.AlignV.middle
+        });
       }
-
-      // Ajout du chiffre d'affaires
-      slide.addText(`CA = ${deal["Chiffre d'affaires de la cible"] || 'n.c.'}`, {
-        x,
-        y: y + tombstoneHeight / 2 - 0.5,
-        w: tombstoneWidth,
-        h: 0.5,
-        fontSize: 10,
-        color: '555555',
-        bold: true,
-        align: pptx.AlignH.center,
-        valign: pptx.AlignV.middle
-      });
-
-      // Ajout de l'opération avec fond bleu
-      slide.addText(deal['Opération'] || '', {
-        x,
-        y: y + tombstoneHeight / 2 + 0.2,
-        w: tombstoneWidth,
-        h: 0.8,
-        fontSize: 12,
-        color: 'FFFFFF',
-        bold: true,
-        fill: { color: '0077CC' },
-        align: pptx.AlignH.center,
-        valign: pptx.AlignV.middle
-      });
-
-      // Ajout du rôle Linkers
-      slide.addText(deal['Rôle Linkers'] || '', {
-        x,
-        y: y + tombstoneHeight / 2 + 1.0,
-        w: tombstoneWidth,
-        h: 0.5,
-        fontSize: 10,
-        color: '777777',
-        align: pptx.AlignH.center,
-        valign: pptx.AlignV.middle
-      });
 
       // Ajout de l'icône de conseil
       try {
