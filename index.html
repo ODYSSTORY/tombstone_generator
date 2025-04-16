@@ -71,11 +71,8 @@
     }
     .tombstone .ca {
       font-size: 0.9em;
-      color: #fff;
-      background-color: #0077cc;
-      padding: 0.5em;
+      color: #555;
       margin-bottom: 0.5em;
-      border-radius: 4px;
     }
     .tombstone .operation {
       font-size: 1em;
@@ -253,16 +250,15 @@
             slide.addImage({ data: deal['Logo cible'], x: x + 0.5, y: y + 0.2, w: tombstoneWidth - 1, h: 1.5 });
           }
 
-          // Ajout du chiffre d'affaires avec fond bleu
+          // Ajout du chiffre d'affaires
           slide.addText(`CA = ${deal["Chiffre d'affaires de la cible"] || 'n.c.'}`, {
             x,
             y: y + 1.8,
             w: tombstoneWidth,
             h: 0.5,
             fontSize: 10,
-            color: 'FFFFFF',
-            bold: true,
-            fill: { color: '0077CC' }
+            color: '555555',
+            bold: true
           });
 
           // Ajout de l'opération avec fond bleu
@@ -278,7 +274,7 @@
           });
 
           // Ajout du rôle Linkers
-          slide.addText(deal['Rôle Linkers'] || '', { x, y: y + 2.9, w: tombstoneWidth, h: 0.3, fontSize: 10 });
+          slide.addText(deal['Rôle Linkers'] || '', { x, y: y + 2.9, w: tombstoneWidth, h: 0.3, fontSize: 10, color: '777777' });
 
           // Ajout de l'icône de conseil
           slide.addImage({ path: 'icons/vendeur.png', x: x + tombstoneWidth - 0.5, y: y + 3.3, w: 0.3, h: 0.3 });
