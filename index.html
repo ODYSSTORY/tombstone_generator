@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Générateur de Tombstones Linkers</title>
+  <title>Générateur de Tombstones M&A</title>
 
   <!-- Librairie XLSX (pour lire les fichiers Excel) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -11,25 +11,30 @@
   <!-- Importation de PptxGenJS depuis un fichier externe -->
   <script src="pptxgen.js"></script>
 
+  <!-- Icônes FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
   <style>
     body {
       font-family: 'Arial', sans-serif;
       padding: 2em;
-      background-color: #f4f4f4;
+      background: linear-gradient(135deg, #f4f4f4, #e2e2e2);
       color: #333;
+      margin: 0;
     }
     h1 {
-      font-size: 2em;
+      font-size: 2.5em;
       color: #0077cc;
       margin-bottom: 1em;
+      text-align: center;
     }
     .container {
       max-width: 1200px;
       margin: auto;
       background: #fff;
       padding: 2em;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
     select, input[type="file"] {
       margin: 0.5em 0;
@@ -37,6 +42,7 @@
       width: 100%;
       border: 1px solid #ccc;
       border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     .tombstone-container {
       display: flex;
@@ -45,17 +51,18 @@
       justify-content: center;
     }
     .tombstone {
-      border: 1px solid #ddd;
-      border-radius: 8px;
+      border: 2px solid #0077cc;
+      border-radius: 12px;
       padding: 1em;
       background-color: #fff;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       text-align: center;
       width: 200px;
-      transition: transform 0.3s;
+      transition: transform 0.3s, box-shadow 0.3s;
     }
     .tombstone:hover {
       transform: scale(1.05);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
     }
     .tombstone img {
       max-width: 100%;
@@ -64,35 +71,66 @@
     }
     .tombstone .ca {
       font-size: 0.9em;
-      color: #555;
+      color: #fff;
+      background-color: #0077cc;
+      padding: 0.5em;
       margin-bottom: 0.5em;
+      border-radius: 4px;
     }
     .tombstone .operation {
       font-size: 1em;
-      color: #0077cc;
+      color: #fff;
+      background-color: #0077cc;
+      padding: 0.5em;
       margin-bottom: 0.5em;
+      border-radius: 4px;
     }
     .tombstone .role {
       font-size: 0.8em;
       color: #777;
     }
+    .btn {
+      padding: 0.7em 1.5em;
+      background-color: #0077cc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 1em;
+      transition: background-color 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn:hover {
+      background-color: #005fa3;
+    }
+    .btn i {
+      margin-right: 0.5em;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Générateur de Tombstones Linkers</h1>
+    <h1>Générateur de Tombstones M&A</h1>
     <input type="file" id="upload" accept=".xlsx,.xls" />
 
     <div id="filters" style="display:none;">
       <label for="secteur">Filtrer par secteur :</label>
-      <select id="secteur"></select>
+      <select id="secteur">
+        <option value="">-- Tous --</option>
+      </select>
       <label for="typologie">Filtrer par typologie :</label>
-      <select id="typologie"></select>
+      <select id="typologie">
+        <option value="">-- Tous --</option>
+      </select>
     </div>
 
     <div id="preview" class="tombstone-container"></div>
 
-    <button class="btn" id="generatePPT" style="display:none;">Générer le PowerPoint</button>
+    <button class="btn" id="generatePPT" style="display:none;">
+      <i class="fas fa-file-powerpoint"></i> Générer le PowerPoint
+    </button>
   </div>
 
   <script>
@@ -204,19 +242,46 @@
           const x = col * (tombstoneWidth + margin) + margin;
           const y = row * (tombstoneHeight + margin) + margin;
 
+          // Ajout du contour
+          slide.addRect(x - margin, y - margin, tombstoneWidth + 2 * margin, tombstoneHeight + 2 * margin, {
+            fill: { color: 'FFFFFF' },
+            line: { color: '0077CC', width: 2 }
+          });
+
           // Ajout du logo
           if (deal['Logo cible'] && deal['Logo cible'].startsWith('data:image')) {
-            slide.addImage({ data: deal['Logo cible'], x, y: y + 0.2, w: tombstoneWidth, h: 1.5 });
+            slide.addImage({ data: deal['Logo cible'], x: x + 0.5, y: y + 0.2, w: tombstoneWidth - 1, h: 1.5 });
           }
 
-          // Ajout du chiffre d'affaires
-          slide.addText(`CA = ${deal["Chiffre d'affaires de la cible"] || 'n.c.'}`, { x, y: y + 1.8, w: tombstoneWidth, h: 0.3, fontSize: 10 });
+          // Ajout du chiffre d'affaires avec fond bleu
+          slide.addText(`CA = ${deal["Chiffre d'affaires de la cible"] || 'n.c.'}`, {
+            x,
+            y: y + 1.8,
+            w: tombstoneWidth,
+            h: 0.5,
+            fontSize: 10,
+            color: 'FFFFFF',
+            bold: true,
+            fill: { color: '0077CC' }
+          });
 
-          // Ajout de l'opération
-          slide.addText(deal['Opération'] || '', { x, y: y + 2.2, w: tombstoneWidth, h: 0.5, fontSize: 12, bold: true });
+          // Ajout de l'opération avec fond bleu
+          slide.addText(deal['Opération'] || '', {
+            x,
+            y: y + 2.4,
+            w: tombstoneWidth,
+            h: 0.5,
+            fontSize: 12,
+            color: 'FFFFFF',
+            bold: true,
+            fill: { color: '0077CC' }
+          });
 
           // Ajout du rôle Linkers
-          slide.addText(deal['Rôle Linkers'] || '', { x, y: y + 2.8, w: tombstoneWidth, h: 0.3, fontSize: 10 });
+          slide.addText(deal['Rôle Linkers'] || '', { x, y: y + 2.9, w: tombstoneWidth, h: 0.3, fontSize: 10 });
+
+          // Ajout de l'icône de conseil
+          slide.addImage({ path: 'icons/vendeur.png', x: x + tombstoneWidth - 0.5, y: y + 3.3, w: 0.3, h: 0.3 });
         }
       }
 
