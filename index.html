@@ -230,6 +230,7 @@ function generatePPT() {
   const tombstoneWidth = 2.5;
   const tombstoneHeight = 3.5;
   const margin = 0.2;
+  const logoHeight = 1.5;
 
   for (let i = 0; i < filtered.length; i += tombstonesPerPage) {
     const slide = pptx.addSlide();
@@ -250,38 +251,51 @@ function generatePPT() {
 
       // Ajout du logo
       if (deal['Logo cible'] && deal['Logo cible'].startsWith('data:image')) {
-        slide.addImage({ data: deal['Logo cible'], x: x + 0.5, y: y + 0.2, w: tombstoneWidth - 1, h: 1.5 });
+        slide.addImage({ data: deal['Logo cible'], x: x + 0.5, y: y + 0.2, w: tombstoneWidth - 1, h: logoHeight });
       }
 
       // Ajout du chiffre d'affaires
       slide.addText(`CA = ${deal["Chiffre d'affaires de la cible"] || 'n.c.'}`, {
         x,
-        y: y + 1.8,
+        y: y + logoHeight + 0.1,
         w: tombstoneWidth,
         h: 0.5,
         fontSize: 10,
         color: '555555',
-        bold: true
+        bold: true,
+        align: pptx.AlignH.center,
+        valign: pptx.AlignV.middle
       });
 
       // Ajout de l'opération avec fond bleu
       slide.addText(deal['Opération'] || '', {
         x,
-        y: y + 2.4,
+        y: y + tombstoneHeight / 2,
         w: tombstoneWidth,
-        h: 0.5,
+        h: 0.8,
         fontSize: 12,
         color: 'FFFFFF',
         bold: true,
-        fill: { color: '0077CC' }
+        fill: { color: '0077CC' },
+        align: pptx.AlignH.center,
+        valign: pptx.AlignV.middle
       });
 
       // Ajout du rôle Linkers
-      slide.addText(deal['Rôle Linkers'] || '', { x, y: y + 2.9, w: tombstoneWidth, h: 0.3, fontSize: 10, color: '777777' });
+      slide.addText(deal['Rôle Linkers'] || '', {
+        x,
+        y: y + tombstoneHeight / 2 + 0.8,
+        w: tombstoneWidth,
+        h: 0.5,
+        fontSize: 10,
+        color: '777777',
+        align: pptx.AlignH.center,
+        valign: pptx.AlignV.middle
+      });
 
       // Ajout de l'icône de conseil
       try {
-        slide.addImage({ path: 'icons/vendeur.png', x: x + tombstoneWidth - 0.5, y: y + 3.3, w: 0.3, h: 0.3 });
+        slide.addImage({ path: 'icons/vendeur.png', x: x + tombstoneWidth - 0.5, y: y + tombstoneHeight - 0.5, w: 0.3, h: 0.3 });
       } catch (error) {
         console.error('Erreur lors de l\'ajout de l\'icône :', error);
       }
